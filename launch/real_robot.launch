@@ -1,0 +1,7 @@
+ <launch>
+
+   <node name="fast_location" pkg="ros_fast_mobile_localization" type="real_robot.py" output="screen">
+   </node>
+ 
+ </launch>
+

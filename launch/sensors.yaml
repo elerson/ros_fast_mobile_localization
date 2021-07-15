@@ -1,0 +1,35 @@
+sensors:
+  1:
+    x : 3
+    y : 3
+    alpha: 1.58
+    sigma: 2.0
+    L0: 1.64
+    d0: 1.0
+  2:
+    x : 30
+    y : 3
+    alpha: 1.58
+    sigma: 2.0
+    L0: 42.5
+    d0: 1.0
+  3:
+    x : 30
+    y : 28
+    alpha: 1.58
+    sigma: 2.0
+    L0: 42.5
+    d0: 1.0
+  4:
+    x : 3
+    y : 28
+    alpha: 1.58
+    sigma: 2.0
+    L0: 42.5
+    d0: 1.0
+
+params:
+  max_sense_time: 0.1
+  correlation: 0.7
+  l1: 0.30
+  l2: -0.30

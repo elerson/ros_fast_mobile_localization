@@ -1,0 +1,91 @@
+define block model
+(
+  size [0.500 0.500 0.500]
+  gui_nose 0
+)
+
+define topurg ranger
+(
+  sensor( 			
+    range [ 0.0  30.0 ]
+    fov 270.25
+   samples 1
+  )
+
+  # generic model properties
+  color "black"
+  size [ 0.050 0.050 0.100 ]
+)
+
+
+define erratic position
+(
+  localization "gps"
+  #size [0.415 0.392 0.25]
+  size [0.350 0.350 0.250]
+  origin [-0.050 0.000 0.000 0.000]
+  gui_nose 0
+  drive "omni"
+  obstacle_return 0
+  topurg(pose [ 0.050 0.000 0.000 0.000 ])
+)
+
+define floorplan model
+(
+  # sombre, sensible, artistic
+  color "gray30"
+
+  # most maps will need a bounding box
+  boundary 1
+
+  gui_nose 0
+  gui_grid 0
+  
+  gui_outline 0
+  gripper_return 0
+  fiducial_return 0
+  laser_return 0
+  fiducial_return 0
+  fiducial_key 0
+  obstacle_return 0
+
+
+
+)
+
+
+# set the resolution of the underlying raytrace model in meters
+resolution 0.02
+
+interval_sim 100  # simulation timestep in milliseconds
+
+
+window
+( 
+  size [ 745 448 ] 
+
+  rotate [ 0.000 -1.560 ]
+  scale 21.642 
+)
+
+# load an environment bitmap
+floorplan
+( 
+  name "icex"
+  bitmap "icex.pgm"
+  size [48.000 26.450 0.500]
+  pose [24.000 13.225 0.000 0.000]
+)
+
+# throw in two robots
+erratic( pose [ 13.982 6.966 0.000 0.000 ] name "era1" color "blue")
+erratic( pose [ 14.035 7.032 0.000 0.000 ] name "era2" color "blue")
+erratic( pose [ 14.245 7.075 0.000 0.000 ] name "era2" color "blue")
+erratic( pose [ 14.200 7.122 0.000 0.000 ] name "era3" color "blue")
+erratic( pose [ 14.337 7.072 0.000 0.000 ] name "er4" color "blue")
+erratic( pose [ 14.199 7.076 0.000 0.000 ] name "era5" color "blue")
+erratic( pose [ 14.201 7.168 0.000 0.000 ] name "era6" color "blue")
+erratic( pose [ 13.825 6.947 0.000 0.000 ] name "era8" color "blue")
+erratic( pose [ 14.383 7.071 0.000 0.000 ] name "era9" color "blue")
+erratic( pose [ 13.828 7.040 0.000 0.000 ] name "era10" color "blue")
+#block( pose [ 13.924 25.020 0 0 ] color "red")

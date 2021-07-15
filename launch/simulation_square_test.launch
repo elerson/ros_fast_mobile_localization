@@ -1,0 +1,17 @@
+ <launch>
+   <param name ="/use_sim_time" value="true"/>
+     <node name="Simulation" pkg="stage_ros" type="stageros" args="$(find ros_fast_mobile_localization)/launch/map/map.world" >
+   </node>
+
+   <!--Map server -->
+   <arg name="map_file" default="$(find ros_fast_mobile_localization)/launch/map/map.yaml"/>
+   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+
+   <node pkg="tf" type="static_transform_publisher" name="kinect_base_link5" args="0 0 0 0 0 0 /odom /map 100"/>
+
+   <node name="fast_location" pkg="ros_fast_mobile_localization" type="robot_square_test.py" output="screen">
+     <param name="config_file" value="$(find ros_fast_mobile_localization)/launch/sensors.yaml" />
+     <param name="exp_file" value="$(find ros_fast_mobile_localization)/launch/experiment.yaml" />
+   </node>
+ 
+ </launch>

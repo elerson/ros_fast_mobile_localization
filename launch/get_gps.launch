@@ -1,0 +1,7 @@
+ <launch>
+
+   <node name="fast_location" pkg="ros_fast_mobile_localization" type="get_gps.py" output="screen">
+   </node>
+ 
+ </launch>
+

@@ -1,0 +1,4 @@
+algorithm: ['EKF', 'UKF']
+sensor_set: [['DoubleDecawave'], ['DoubleSensors'], ['Decawave'], ['Sensors']] #[['Decawave'], ['DoubleDecawave'], ['Sensors'], ['DoubleDecawave'],  ['DoubleSensors']] #[[GPS, Decawave],
+            # [GPS,DoubleSensors, Sensors, Double, Decawave]]
+odom_alphas: [0.1, 0.1, 0.2, 0.2]
