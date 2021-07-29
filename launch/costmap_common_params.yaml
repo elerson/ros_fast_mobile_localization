@@ -1,0 +1,9 @@
+obstacle_range: 2.5
+raytrace_range: 2.5
+
+robot_radius: 0.30
+inflation_radius: 0.8
+
+observation_sources: scan
+scan: {data_type: LaserScan, topic: base_scan, marking: false, clearing: false, sensor_frame: base_link_uwb}
+

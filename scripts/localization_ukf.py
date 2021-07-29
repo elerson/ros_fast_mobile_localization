@@ -23,7 +23,7 @@ class LocalizationUKF:
         self.odom_pub = rospy.Publisher('localization_odom_ukf', Odometry, queue_size=10)
 
         #self.current_pose = np.matrix([[0],[0],[0]])
-        self.sigma  = np.matrix(np.identity((3)))
+        self.sigma  = np.matrix(np.identity((3)))*100000.0
         self.current_odom_time = time.time()
         self.current_odom = np.matrix([[0],[0],[0]])
 

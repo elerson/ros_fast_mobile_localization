@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import rospy
 from scipy.optimize import linear_sum_assignment
 
@@ -16,30 +16,29 @@ from geometry_msgs.msg import Point
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Quaternion 
 from geometry_msgs.msg import PoseWithCovarianceStamped
-from fast_mobile_localization.msg import Sensor
-from robot_controller.msg import Gps_msg
 from visualization_msgs.msg import Marker
 
 from geometry_msgs.msg import Pose2D
-
+from ros_decawave.msg import Tag
 
 
 from nav_msgs.msg import MapMetaData
 from models.rssi_model import RSSIModel
 from localization_ekf import LocalizationEKF
 from localization_ukf import LocalizationUKF
+from localization_rsf import LocalizationRSF
+
 import time
 import yaml
 import pickle
-import utm
-from models.real_sensors import DoubleDecawaveReal, DoubleDecawaveGroundTruth
+from models.real_sensors import DecawaveReal, DecawaveRSF
 
 import signal
 import sys
    
 
 class Robot:
-    def __init__(self):
+    def __init__(self, tag_sub):
 
         self.first_odom = True
         self.odom_callback = []
@@ -55,9 +54,12 @@ class Robot:
         self.current_pose = np.matrix([[0],[0],[0]])
 
         rospy.Subscriber("/odom", Odometry, self.odomCallback)
-        self.odom_pub = rospy.Publisher('simulated_odom', Odometry, queue_size=10)
-        self.odom_pub2 = rospy.Publisher('odom_world', Odometry, queue_size=10)
+        self.odom_pub = rospy.Publisher('simulated_odom', Odometry, queue_size=10)        
+        rospy.Subscriber(tag_sub, Tag, self.decawavePos)
 
+    def decawavePos(self, data):
+    	self.initial = True
+    	self.initial_pose = (data.x, data.y, 0, 0) 
 
     def publishOdom(self):
         msg = Odometry()
@@ -164,7 +166,6 @@ class Robot:
         self.defineOdom()
 
         odom.header.frame_id = '/world'
-        self.odom_pub2.publish(odom)
 
 
 
@@ -195,12 +196,44 @@ class Robot:
     def getInitialPose(self):
 
         while(not self.initial):
-            self.getGroundTruthPose()
+            
             time.sleep(0.5)
 
         return self.initial_pose
 
 
+
+
+def publish_odom(tf_pub, publisher, pose):
+  msg = Odometry()
+  msg.header.stamp = rospy.Time.now()
+
+        
+
+  msg.pose.pose.position = Point(pose[0], pose[1],  0)
+  #print(msg.pose.pose.position)
+
+  quaternion = tf.transformations.quaternion_from_euler(0, 0, pose[2])
+
+  #type(pose) = geometry_msgs.msg.Pose
+  msg.pose.pose.orientation.x = quaternion[0]
+  msg.pose.pose.orientation.y = quaternion[1]
+  msg.pose.pose.orientation.z = quaternion[2]
+  msg.pose.pose.orientation.w = quaternion[3]
+
+  p_cov = np.array([0.0]*36).reshape(6,6)
+  msg.pose.covariance = tuple(p_cov.ravel().tolist())
+
+  # Publish odometry message
+  
+  
+  base_frame_id = "base_link_uwb"
+  odom_frame_id = "odom_uwb"
+    
+  msg.header.frame_id = odom_frame_id
+  publisher.publish(msg)
+  quat = tf.transformations.quaternion_from_euler(0, 0, 0)
+  tf_pub.sendTransform((0, 0, 0), quat, msg.header.stamp, base_frame_id, odom_frame_id)
 
 # def signal_handler(sig, frame):
 
@@ -210,145 +243,41 @@ class Robot:
 if __name__ == "__main__":
     # signal.signal(signal.SIGINT, signal_handler)
     # signal.pause()
-
-
+    
     rospy.init_node('fast_mobile_localization_real', anonymous=True)
+    odom_pub = rospy.Publisher('uwb_odom', Odometry, queue_size=10)
+    tf_pub = tf.TransformBroadcaster()
+    
+    devices = ('/tag_status', 0.15)
 
+    covariance_matrix = np.matrix([[0.1]])
 
-    devices = [('/dwc0af/tag_status', -0.225), ('/dwc4b8/tag_status', 0.225)]
-
-    covariance_matrix = np.matrix([[0.135148,  0.0559928], \
-                                    [0.0559928, 0.1682208]])
-
-
-    odom_alphas = [0.001, 0.05, 0.001, 0.05]
-    robot = Robot()
+    conf  = 0.6
+    odom_alphas = [0.001*conf, 0.05*conf, 0.001*conf, 0.05*conf]
+    robot = Robot('/tag_pose')
 
     # #create the localization module
     initial_pose = robot.getInitialPose()
 
 
-
-    devices_gt = [('/dwc0af/tag_pose', -0.225), ('/dwc4b8/tag_pose', 0.225)]
-    decawave_ground_truth = DoubleDecawaveGroundTruth(devices_gt)
-
-    GPS_           = None 
-    Decawave_      = None
-    DoubleSensors_ = None
-    Sensors_        = None 
-    DoubleDecawave_ = None 
-
-
-    algorithms = ['EKF', 'UKF']
-
-    sensor_list = [['DoubleDecawaveReal']]
-
-
-    localization_algs = []
-    for algorithm in algorithms:           
-        for sensor_set in sensor_list:
-
-            if(algorithm == 'UKF'):
-                localization = LocalizationUKF(initial_pose, odom_alphas)
-
-            elif(algorithm == 'EKF'):
-                localization = LocalizationEKF(initial_pose, odom_alphas)
-
-            else:
-                
-                print('ERROR - Algorithm --' + algorithm+ '-- not implemented')
-                exit()
-
-            sensor_str = algorithm
-            sensor_obj = []
-            for sensor in sensor_set:
+    #localization = LocalizationEKF(initial_pose, odom_alphas)
+    wheel_baseline = 0.06
+    localization = LocalizationRSF(initial_pose, wheel_baseline, (0.015, 0.015, 0.01))
     
-                if(sensor == 'DoubleDecawaveReal'):
-                    
-                    DoubleDecawave_ = DoubleDecawaveReal(devices, covariance_matrix)
-                    sensor_ = DoubleDecawave_
-
-                else:
-                    print('ERROR - sensor --' + sensor + '-- not implemented')
-                    exit()
-
-                sensor_obj.append(sensor_)
-                sensor_str += "_" + sensor
-                sensor_.addCallback(localization.receiveSensorData)
-
-            robot.addCallback(localization.receiveOdom)
-            localization_algs.append((localization, sensor_str, sensor_obj))
-
-
-    rate = rospy.Rate(25.0)
-    data = {}
-    data['ground_truth'] = {}
-    data['ground_truth']['x'] = []
-    data['ground_truth']['y'] = []
-    data['ground_truth']['t'] = []
-
-    #
-    data['odom'] = {}
-    data['odom']['x'] = []
-    data['odom']['y'] = []
-    data['odom']['t'] = []
-
-
-    data['deca_gt'] = {}
-    data['deca_gt']['x'] = []
-    data['deca_gt']['y'] = []
-    data['deca_gt']['t'] = []
-
-    for localization_alg in localization_algs:
-        data[localization_alg[1]] = {}
-        data[localization_alg[1]]['x'] = []
-        data[localization_alg[1]]['y'] = []
-        data[localization_alg[1]]['t'] = []
-
-
+    
+    #DecawaveReal = DecawaveReal(devices, covariance_matrix)
+    DecawaveReal = DecawaveRSF(devices, covariance_matrix[0, 0])
+    DecawaveReal.addCallback(localization.receiveSensorData)
+    
+    robot.addCallback(localization.receiveOdom)
+    
     rate = rospy.Rate(25.0)
 
     while not rospy.is_shutdown():
-        
-
+    
         #ground truth
-        pose = robot.getGroundTruthPose()
-        data['ground_truth']['x'].append(pose[0])
-        data['ground_truth']['y'].append(pose[1])
-        data['ground_truth']['t'].append(pose[2])
-        posegt = pose
-
-        #
-        pose = robot.getCorrectedOdom()
-        data['odom']['x'].append(pose[0])
-        data['odom']['y'].append(pose[1])
-        data['odom']['t'].append(pose[2])
-
-
-
-        pose = decawave_ground_truth.getPose()
-        data['deca_gt']['x'].append(pose[0])
-        data['deca_gt']['y'].append(pose[1])
-        data['deca_gt']['t'].append(pose[2])
-
-        #print(data['deca_gt']['t'][-1], data['ground_truth']['t'][-1])
-
-
-        for localization_alg in localization_algs:
-
-            pose = localization_alg[0].getPose()
-
-            data[localization_alg[1]]['x'].append(pose[0])
-            data[localization_alg[1]]['y'].append(pose[1])
-            data[localization_alg[1]]['t'].append(pose[2])
-
-
-        #print(posegt, pose)
-
+        pose = localization.getPose()
+        publish_odom(tf_pub, odom_pub, pose)
+        #print(pose)
         rate.sleep()
-
-    name = '/home/elerson/.ros/test_real_'+str(time.time())[:-3]
-    with open(name + '.pkl', 'wb') as f:
-        pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
-        
 
