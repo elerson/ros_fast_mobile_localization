@@ -262,7 +262,7 @@ if __name__ == "__main__":
 
     #localization = LocalizationEKF(initial_pose, odom_alphas)
     wheel_baseline = 0.06
-    localization = LocalizationRSF(initial_pose, wheel_baseline, (0.015, 0.015, 0.01))
+    localization = LocalizationRSF(initial_pose, wheel_baseline, (0.0015, 0.0015, 0.001))
     
     
     #DecawaveReal = DecawaveReal(devices, covariance_matrix)

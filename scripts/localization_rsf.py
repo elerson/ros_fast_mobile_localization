@@ -12,11 +12,11 @@ from geometry_msgs.msg import Point, Quaternion
 
 import tf
 from threading import Lock
-
+from pylibrsf.pylibrsf import PyLibRSF
 
 
 class LocalizationRSF:
-    def __init__(self, initial_pose, wheel_baseline, odom_covariance):
+    def __init__(self, initial_pose, wheel_baseline, odom_covariance, alg="corr"):
         
         self.current_odom = None
 
@@ -25,19 +25,29 @@ class LocalizationRSF:
         #self.current_pose = np.matrix([[0],[0],[0]])
         self.sigma  = np.matrix(np.identity((3)))*100000.0
         self.current_odom_time = time.time()
+        self.last_odom_time = self.current_odom_time
+        self.initial_time = self.current_odom_time
         self.last_odom = np.matrix([[0],[0],[0]])
+        self.odom_init = False
+        self.rsf = PyLibRSF(alg)
 
         self.setInitialPose(initial_pose)
         self.wheel_baseline = wheel_baseline
-        self.odom_covariance = odom_covariance
+        self.odom_covariance = [sqrt(odom_covariance[0]), sqrt(odom_covariance[1]), sqrt(odom_covariance[2])]
+        
+        
 
-        self.kalman_mutex = Lock()
 
 
     def setInitialPose(self, pose):
         self.current_pose = np.matrix([[pose[0]],[pose[1]],[pose[2]]])
         self.last_odom = np.matrix([[pose[0]],[pose[1]],[pose[2]]])
+        self.odom = np.matrix([[pose[0]],[pose[1]],[pose[2]]])
         self.last_odom_time = time.time()
+        self.initial_time = self.last_odom_time
+        
+        timestamp = self.last_odom_time - self.initial_time
+        self.rsf.setInitialPose(timestamp, pose[0], pose[1], pose[2], [100000000.0, 100000000., 0.001])
 
 
     def getVelocities(self, last_odom, new_odom, last_time, new_time):
@@ -63,11 +73,14 @@ class LocalizationRSF:
        
         self.odom = odom
         self.odom_time = time.time()
+        self.odom_init = True
 
 
-    def receiveSensorData(self, data):
+    def receiveSensorData(self, sensor_data):
         #anchor_id, real_measurement, (x_s, y_s), self.l1, sensor_covariance
-        
+        if(not self.odom_init):
+           return
+           
         odom = self.odom
         new_odom = np.matrix([[odom[0]],[odom[1]],[odom[2]]])
         new_odom_time = self.odom_time
@@ -79,9 +92,35 @@ class LocalizationRSF:
         v_l = (v_t[0] - self.wheel_baseline*w_t)/(delta_time)
         v_r = (v_t[0] + self.wheel_baseline*w_t)/(delta_time)
         
+        #std::vector<vector<double>> &positions, std::vector<double> &range, std::vector<double> &L, std::vector<double> &covariance
+        positions = []
+        ranges = []
+        Ls = []
+        covariances = []
+        for sensor in sensor_data:
+           anchor_id, real_measurement, (x_s, y_s), l, sensor_covariance  = sensor
+           positions.append([x_s, y_s])
+           ranges.append(real_measurement)
+           Ls.append(l)
+           covariances.append(sqrt(sensor_covariance))
         
-        print(v_l, v_r, data)
         
+        timestampold = self.last_odom_time - self.initial_time
+        timestamp = new_odom_time - self.initial_time
+        #print('time ', timestamp)
+        
+        self.rsf.addStates(timestamp)
+        
+        self.rsf.addOdometry(timestamp, timestampold, [v_l, v_r, 0], self.wheel_baseline, self.odom_covariance)
+        self.rsf.addMeasurement(timestamp, positions, ranges, Ls, covariances)
+        
+        #self.rsf.tuneErrorModel()        
+        self.rsf.solve(timestamp, 60)
+        
+        self.current_pose = self.rsf.getState(timestamp)
+        #print(timestamp, self.current_pose)
+        #print(self.rsf.teste([4,5])) 
+        #print(new_odom_time - self.initial_time, positions, Ls)
         
         self.last_odom = new_odom
         self.last_odom_time = new_odom_time
@@ -126,5 +165,5 @@ class LocalizationRSF:
 
 
     def getPose(self):
-        return (self.current_pose[0,0], self.current_pose[1,0], self.current_pose[2,0])
+        return (self.current_pose[0], self.current_pose[1], self.current_pose[2])
 
