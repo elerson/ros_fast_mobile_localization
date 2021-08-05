@@ -88,9 +88,10 @@ class LocalizationRSF:
         velocities, delta_time = self.getVelocities(self.last_odom, new_odom, self.last_odom_time, new_odom_time)
        
         v_t, w_t = velocities
-
-        v_l = (v_t[0] - self.wheel_baseline*w_t)/(delta_time)
-        v_r = (v_t[0] + self.wheel_baseline*w_t)/(delta_time)
+	
+        if(delta_time > 0):
+            v_l = (v_t[0] - self.wheel_baseline*w_t)/(delta_time)
+            v_r = (v_t[0] + self.wheel_baseline*w_t)/(delta_time)
         
         #std::vector<vector<double>> &positions, std::vector<double> &range, std::vector<double> &L, std::vector<double> &covariance
         positions = []
@@ -108,10 +109,10 @@ class LocalizationRSF:
         timestampold = self.last_odom_time - self.initial_time
         timestamp = new_odom_time - self.initial_time
         #print('time ', timestamp)
+        if(timestamp != timestampold):
+            self.rsf.addStates(timestamp)
         
-        self.rsf.addStates(timestamp)
-        
-        self.rsf.addOdometry(timestamp, timestampold, [v_l, v_r, 0], self.wheel_baseline, self.odom_covariance)
+            self.rsf.addOdometry(timestamp, timestampold, [v_l, v_r, 0], self.wheel_baseline, self.odom_covariance)
         self.rsf.addMeasurement(timestamp, positions, ranges, Ls, covariances)
         
         #self.rsf.tuneErrorModel()        
