@@ -264,7 +264,7 @@ if __name__ == "__main__":
 
     tf_pub = tf.TransformBroadcaster()
     
-    devices = ('/tag_status', 0.15)
+    devices = ('/tag_status', 0.10)
 
     covariance_matrix = np.matrix([[0.1]])
 
