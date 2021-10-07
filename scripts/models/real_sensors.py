@@ -66,6 +66,7 @@ class DoubleDecawaveReal:
 
 
     def addCallback(self, callback):
+        self.callback = []
         self.callback.append(callback)
 
     def initializeQueues(self):
@@ -195,6 +196,7 @@ class DecawaveReal:
 
 
     def addCallback(self, callback):
+        self.callback = []
         self.callback.append(callback)
 
     def initializeQueues(self):
@@ -294,6 +296,7 @@ class DecawaveRSF:
 
 
     def addCallback(self, callback):
+        self.callback = []
         self.callback.append(callback)
 
     def initializeQueues(self):

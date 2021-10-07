@@ -18,6 +18,7 @@ from geometry_msgs.msg import Quaternion
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from visualization_msgs.msg import Marker
 
+
 from geometry_msgs.msg import Pose2D
 from ros_decawave.msg import Tag
 
@@ -26,7 +27,7 @@ from nav_msgs.msg import MapMetaData
 from models.rssi_model import RSSIModel
 from localization_ekf import LocalizationEKF
 from localization_ukf import LocalizationUKF
-from localization_rsf import LocalizationRSF
+#from localization_rsf import LocalizationRSF
 
 import time
 import yaml
@@ -228,12 +229,22 @@ def publish_odom(tf_pub, publisher, pose):
   
   
   base_frame_id = "base_link_uwb"
-  odom_frame_id = "odom_uwb"
+  odom_frame_id = "map"
     
   msg.header.frame_id = odom_frame_id
   publisher.publish(msg)
   quat = tf.transformations.quaternion_from_euler(0, 0, 0)
   tf_pub.sendTransform((0, 0, 0), quat, msg.header.stamp, base_frame_id, odom_frame_id)
+
+
+def getInitialPose(data):
+    global initial_pose
+    yaw = tf.transformations.euler_from_quaternion([data.pose.pose.orientation.x, data.pose.pose.orientation.y,
+                                                         data.pose.pose.orientation.z, data.pose.pose.orientation.w])[2]
+    quaternion = tf.transformations.quaternion_from_euler(0, 0, yaw)
+
+    initial_pose = (data.pose.pose.position.x, data.pose.pose.position.y, yaw)
+    pass
 
 # def signal_handler(sig, frame):
 
@@ -246,38 +257,50 @@ if __name__ == "__main__":
     
     rospy.init_node('fast_mobile_localization_real', anonymous=True)
     odom_pub = rospy.Publisher('uwb_odom', Odometry, queue_size=10)
+    rospy.Subscriber("/initialpose", PoseWithCovarianceStamped, getInitialPose)
+    global initial_pose
+
+
     tf_pub = tf.TransformBroadcaster()
     
     devices = ('/tag_status', 0.15)
 
     covariance_matrix = np.matrix([[0.1]])
 
-    conf  = 0.6
+    conf  = 0.01
     odom_alphas = [0.001*conf, 0.05*conf, 0.001*conf, 0.05*conf]
     robot = Robot('/tag_pose')
 
     # #create the localization module
-    initial_pose = robot.getInitialPose()
-
-
-    #localization = LocalizationEKF(initial_pose, odom_alphas)
+    #initial_pose = robot.getInitialPose()
+    initial_pose = None   
     wheel_baseline = 0.06
-    localization = LocalizationRSF(initial_pose, wheel_baseline, (0.0015, 0.0015, 0.001))
     
+    DecawaveReal = DecawaveReal(devices, covariance_matrix)
+    #DecawaveReal = DecawaveRSF(devices, covariance_matrix[0, 0])
     
-    #DecawaveReal = DecawaveReal(devices, covariance_matrix)
-    DecawaveReal = DecawaveRSF(devices, covariance_matrix[0, 0])
-    DecawaveReal.addCallback(localization.receiveSensorData)
-    
-    robot.addCallback(localization.receiveOdom)
     
     rate = rospy.Rate(25.0)
 
+    initialized = False
     while not rospy.is_shutdown():
     
-        #ground truth
-        pose = localization.getPose()
-        publish_odom(tf_pub, odom_pub, pose)
+        if (initial_pose != None):
+            localization = LocalizationEKF(initial_pose, odom_alphas)
+            #localization = LocalizationRSF(initial_pose, wheel_baseline, (0.0015, 0.0015, 0.001))
+
+            DecawaveReal.addCallback(localization.receiveSensorData)
+            robot.addCallback(localization.receiveOdom)
+
+            print('initial_pose', initial_pose)
+            initial_pose = None
+            initialized = True
+
+
+        if initialized:
+            pose = localization.getPose()
+            publish_odom(tf_pub, odom_pub, pose)
+
         #print(pose)
         rate.sleep()
 

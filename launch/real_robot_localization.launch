@@ -1,27 +1,13 @@
  <launch>
 
-   <node name="fast_location" pkg="ros_fast_mobile_localization" type="real_robot.py" output="screen">
-   </node>
+ <node name="fast_location" pkg="ros_fast_mobile_localization" type="real_robot.py" output="screen">
+ </node>
    
-   <node pkg="fake_localization" type="fake_localization" name="amclrobot" output="screen">
-   <!-- Publish scans from best pose at a max of 10 Hz -->
-   <param name="odom_model_type" value="omni"/>
-   <param name="base_frame_id" value="base_link_uwb"/>
-   <param name="odom_frame_id" value="odom_uwb"/>
-   <param name="global_frame_id" value="map"/>
-   <remap from="base_pose_ground_truth" to="uwb_odom"/>
-  </node>
-    
  <!--Map server -->
  <arg name="map_file" default="$(find ros_fast_mobile_localization)/launch/map/map.yaml"/>
  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
   
-  
-  <node pkg="hector_trajectory_server" type="hector_trajectory_server" name="tr" output="screen">
-   <!-- Publish scans from best pose at a max of 10 Hz -->
-   <param name="source_frame_name" value="base_link_uwb"/>
-  </node>
-   
+    
  
  </launch>
 
