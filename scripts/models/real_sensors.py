@@ -178,13 +178,14 @@ class DoubleDecawaveReal:
 
 
 class DecawaveReal:
-    def __init__(self, devices, covariance_matrix):
+    def __init__(self, devices, covariance_matrix, sensor_z=0.45):
         self.callback = []
 
         (dev1_name, dev_1_distance) = devices
 
         self.anchors_list = set([])
 
+        self.sensor_z = sensor_z
         self.l1 = dev_1_distance
        
         self.covariance_matrix = covariance_matrix
@@ -207,12 +208,12 @@ class DecawaveReal:
     def nodePosition(self, anchor_id):
         try:
           (trans,rot) = self.tf_listener.lookupTransform('world', anchor_id, rospy.Time(0))
-          return trans[0], trans[1]
+          return trans[0], trans[1], trans[2]
         except:
           return None, None
 
 
-    def jacobian(self, x_s, y_s):
+    def jacobian(self, x_s, y_s, z_s):
         def my_jacobian(x,y,theta):
 
             l1 = self.l1
@@ -221,13 +222,13 @@ class DecawaveReal:
             y_r1 = y + sin(theta)*l1
 
 
-            return np.matrix([[(x_r1-x_s)/sqrt((x_r1-x_s)**2 + (y_r1-y_s)**2), (y_r1-y_s)/sqrt((x_r1-x_s)**2 + (y_r1-y_s)**2), l1*((x_s-x)*sin(theta) - (y_s-y)*cos(theta))/sqrt((x_r1-x_s)**2 + (y_r1-y_s)**2)]])
+            return np.matrix([[(x_r1-x_s)/sqrt((x_r1-x_s)**2 + (y_r1-y_s)**2 + (z_s-self.sensor_z)**2), (y_r1-y_s)/sqrt((x_r1-x_s)**2 + (y_r1-y_s)**2 + (z_s-self.sensor_z)**2), l1*((x_s-x)*sin(theta) - (y_s-y)*cos(theta))/sqrt((x_r1-x_s)**2 + (y_r1-y_s)**2 + (z_s-self.sensor_z)**2) ]])
         return my_jacobian
 
-    def getDistance(self, x, y):
-        return sqrt(x**2 + y**2 + 0.45**2)
+    def getDistance(self, x, y, z):
+        return sqrt(x**2 + y**2 + z**2)
 
-    def estimatedMeasurement(self, x_s, y_s):
+    def estimatedMeasurement(self, x_s, y_s, z_s):
 
         def my_measurment(x,y,theta):
 
@@ -236,7 +237,7 @@ class DecawaveReal:
             x_r1 = x + cos(theta)*l1
             y_r1 = y + sin(theta)*l1
 
-            return np.matrix([[self.getDistance(x_s-x_r1 , y_s-y_r1)]])
+            return np.matrix([[self.getDistance(x_s-x_r1 , y_s-y_r1, z_s-self.sensor_z)]])
         return my_measurment
 
 
@@ -261,14 +262,14 @@ class DecawaveReal:
             if(len(self.sensor_1[anchor_id]) >= 1):
                 distance_1, time_1 = self.sensor_1[anchor_id].popleft()
                 
-                x_s, y_s = self.nodePosition(anchor_id)
+                x_s, y_s, z_s = self.nodePosition(anchor_id)
                 if(x_s == None):
                     continue
                 
                 real_measurement = np.matrix([[distance_1]])
 
-                expected_measurement_function = self.estimatedMeasurement(x_s, y_s)# self.sensors[selected_sensor].getMeasurementRaw
-                jacobian_function = self.jacobian(x_s, y_s)
+                expected_measurement_function = self.estimatedMeasurement(x_s, y_s, z_s)# self.sensors[selected_sensor].getMeasurementRaw
+                jacobian_function = self.jacobian(x_s, y_s, z_s)
                 sensor_covariance = self.covariance_matrix
 
                 #print(x_s, y_s, rssi)
