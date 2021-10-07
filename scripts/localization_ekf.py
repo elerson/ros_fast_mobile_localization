@@ -148,7 +148,7 @@ class LocalizationEKF:
 
     def updatePrediction(self, velocities, delta_time):
        
-       
+        return 
         #update using the robot dynamics
         theta = self.current_pose[2,0]
         v_t   = velocities[0]
@@ -182,7 +182,7 @@ class LocalizationEKF:
         self.current_pose  = pose_
         
     def updateMeasurementGeneric(self, real_measurement, expected_measurement_function, jacobian_function, sensor_covariance):
-
+        return
         #print('measurement')
         sigma_ = self.sigma
         pose_  = self.current_pose
