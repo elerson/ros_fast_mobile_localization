@@ -38,7 +38,7 @@ class LocalizationEKF:
 
     def setInitialPose(self, pose):
         self.current_pose = np.matrix([[pose[0]],[pose[1]],[pose[2]]])
-        self.current_odom = np.matrix([[pose[0]],[pose[1]],[pose[2]]])
+        self.current_odom = None
         print('self.current_pose', self.current_pose )
 
     def getVelocities(self, last_odom, new_odom, last_time, new_time):
@@ -65,10 +65,15 @@ class LocalizationEKF:
 
         new_odom = np.matrix([[odom[0]],[odom[1]],[odom[2]]])
         new_odom_time = time.time()
+        if self.current_odom == None:
+            self.current_odom = new_odom
+            self.current_odom_time = new_odom_time
+
         #print(new_odom)
         velocities, delta_time = self.getVelocities(self.current_odom, new_odom, self.current_odom_time, new_odom_time)
         #apply the prediction filter - kalman filter
         if(not (velocities[1] == 0.0)):
+            print('velocities', velocities)
             #self.runKalmanFilter(velocities, delta_time, x_s, y_s, rssi, s_alpha, s_sigma, measurement_function)
             self.updatePrediction(velocities, delta_time)
 
@@ -148,7 +153,7 @@ class LocalizationEKF:
 
     def updatePrediction(self, velocities, delta_time):
        
-        return 
+         
         #update using the robot dynamics
         theta = self.current_pose[2,0]
         v_t   = velocities[0]
@@ -186,7 +191,7 @@ class LocalizationEKF:
         #print('measurement')
         sigma_ = self.sigma
         pose_  = self.current_pose
-        print(' curr pose',  pose_ )
+        
 
          #sensor data
         z_s = real_measurement
