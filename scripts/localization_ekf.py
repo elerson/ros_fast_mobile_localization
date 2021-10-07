@@ -19,6 +19,7 @@ class LocalizationEKF:
     def __init__(self, initial_pose, odom_alphas):
         
         self.current_odom = None
+        self.current_odom_init = False
 
         self.odom_pub = rospy.Publisher('localization_odom_ekf', Odometry, queue_size=10)
 
@@ -39,6 +40,7 @@ class LocalizationEKF:
     def setInitialPose(self, pose):
         self.current_pose = np.matrix([[pose[0]],[pose[1]],[pose[2]]])
         self.current_odom = None
+        self.current_odom_init = False
         print('self.current_pose', self.current_pose )
 
     def getVelocities(self, last_odom, new_odom, last_time, new_time):
@@ -65,9 +67,10 @@ class LocalizationEKF:
 
         new_odom = np.matrix([[odom[0]],[odom[1]],[odom[2]]])
         new_odom_time = time.time()
-        if self.current_odom == None:
+        if not self.current_odom_init:
             self.current_odom = new_odom
             self.current_odom_time = new_odom_time
+            self.current_odom_init = True
 
         #print(new_odom)
         velocities, delta_time = self.getVelocities(self.current_odom, new_odom, self.current_odom_time, new_odom_time)
