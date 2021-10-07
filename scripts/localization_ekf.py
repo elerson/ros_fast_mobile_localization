@@ -25,7 +25,7 @@ class LocalizationEKF:
         #self.current_pose = np.matrix([[0],[0],[0]])
         self.sigma  = np.matrix(np.identity((3)))*100000.0
         self.current_odom_time = time.time()
-        self.current_odom = np.matrix([[0],[0],[0]])
+        self.current_odom = np.matrix([[0.001],[0.001],[0.001]])
 
         self.setInitialPose(initial_pose)
 
