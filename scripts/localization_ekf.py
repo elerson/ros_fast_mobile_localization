@@ -39,7 +39,7 @@ class LocalizationEKF:
     def setInitialPose(self, pose):
         self.current_pose = np.matrix([[pose[0]],[pose[1]],[pose[2]]])
         self.current_odom = np.matrix([[pose[0]],[pose[1]],[pose[2]]])
-
+        print('self.current_pose', self.current_pose )
 
     def getVelocities(self, last_odom, new_odom, last_time, new_time):
 
