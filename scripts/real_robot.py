@@ -172,6 +172,7 @@ class Robot:
 
 
     def addCallback(self, callback):
+        self.odom_callback = []
         self.odom_callback.append(callback)
 
     def getCorrectedOdom(self):
