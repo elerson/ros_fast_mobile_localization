@@ -225,7 +225,7 @@ class DecawaveReal:
         return my_jacobian
 
     def getDistance(self, x, y):
-        return sqrt(x**2 + y**2)
+        return sqrt(x**2 + y**2 + 0.45**2)
 
     def estimatedMeasurement(self, x_s, y_s):
 
