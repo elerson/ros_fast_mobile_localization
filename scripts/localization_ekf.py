@@ -182,7 +182,7 @@ class LocalizationEKF:
         self.current_pose  = pose_
         
     def updateMeasurementGeneric(self, real_measurement, expected_measurement_function, jacobian_function, sensor_covariance):
-        return
+        
         #print('measurement')
         sigma_ = self.sigma
         pose_  = self.current_pose
