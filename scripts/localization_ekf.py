@@ -186,7 +186,7 @@ class LocalizationEKF:
         #print('measurement')
         sigma_ = self.sigma
         pose_  = self.current_pose
-        print(' curr pose' + pose_ )
+        print(' curr pose',  pose_ )
 
          #sensor data
         z_s = real_measurement
