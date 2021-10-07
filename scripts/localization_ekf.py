@@ -76,7 +76,7 @@ class LocalizationEKF:
         velocities, delta_time = self.getVelocities(self.current_odom, new_odom, self.current_odom_time, new_odom_time)
         #apply the prediction filter - kalman filter
         if(not (velocities[1] == 0.0)):
-            print('velocities', velocities)
+            #print('velocities', velocities)
             #self.runKalmanFilter(velocities, delta_time, x_s, y_s, rssi, s_alpha, s_sigma, measurement_function)
             self.updatePrediction(velocities, delta_time)
 
