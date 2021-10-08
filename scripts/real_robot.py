@@ -27,7 +27,7 @@ from nav_msgs.msg import MapMetaData
 from models.rssi_model import RSSIModel
 from localization_ekf import LocalizationEKF
 from localization_ukf import LocalizationUKF
-from localization_rsf import LocalizationRSF
+#from localization_rsf import LocalizationRSF
 
 import time
 import yaml
@@ -275,10 +275,10 @@ if __name__ == "__main__":
     # #create the localization module
     #initial_pose = robot.getInitialPose()
     initial_pose = None   
-    wheel_baseline = 0.22
+    wheel_baseline = 0.06
     
-    #DecawaveReal = DecawaveReal(devices, covariance_matrix)
-    DecawaveReal = DecawaveRSF(devices, covariance_matrix[0, 0])
+    DecawaveReal = DecawaveReal(devices, covariance_matrix)
+    #DecawaveReal = DecawaveRSF(devices, covariance_matrix[0, 0])
     
     
     rate = rospy.Rate(25.0)
@@ -287,8 +287,8 @@ if __name__ == "__main__":
     while not rospy.is_shutdown():
     
         if (initial_pose != None):
-            #localization = LocalizationEKF(initial_pose, odom_alphas)
-            localization = LocalizationRSF(initial_pose, wheel_baseline, (0.0015, 0.0015, 0.001))
+            localization = LocalizationEKF(initial_pose, odom_alphas)
+            #localization = LocalizationRSF(initial_pose, wheel_baseline, (0.0015, 0.0015, 0.001))
 
             DecawaveReal.addCallback(localization.receiveSensorData)
             robot.addCallback(localization.receiveOdom)
