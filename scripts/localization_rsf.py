@@ -27,7 +27,7 @@ class LocalizationRSF:
         self.current_odom_time = time.time()
         self.last_odom_time = self.current_odom_time
         self.initial_time = self.current_odom_time
-        self.last_odom = np.matrix([[0],[0],[0]])
+        self.last_odom = np.matrix([[100.0],[100],[100]])
         self.odom_init = False
         self.rsf = PyLibRSF(alg)
 
