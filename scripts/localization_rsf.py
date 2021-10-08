@@ -16,7 +16,7 @@ from pylibrsf.pylibrsf import PyLibRSF
 
 
 class LocalizationRSF:
-    def __init__(self, initial_pose, wheel_baseline, odom_covariance, alg="corr"):
+    def __init__(self, initial_pose, wheel_baseline, odom_covariance, alg="gauss"):
         
         self.current_odom = None
 
