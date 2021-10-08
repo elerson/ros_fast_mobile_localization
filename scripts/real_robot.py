@@ -27,7 +27,7 @@ from nav_msgs.msg import MapMetaData
 from models.rssi_model import RSSIModel
 from localization_ekf import LocalizationEKF
 from localization_ukf import LocalizationUKF
-#from localization_rsf import LocalizationRSF
+from localization_rsf import LocalizationRSF
 
 import time
 import yaml
