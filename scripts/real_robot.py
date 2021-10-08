@@ -275,7 +275,7 @@ if __name__ == "__main__":
     # #create the localization module
     #initial_pose = robot.getInitialPose()
     initial_pose = None   
-    wheel_baseline = 0.06
+    wheel_baseline = 0.22
     
     #DecawaveReal = DecawaveReal(devices, covariance_matrix)
     DecawaveReal = DecawaveRSF(devices, covariance_matrix[0, 0])
