@@ -210,7 +210,7 @@ class DecawaveReal:
           (trans,rot) = self.tf_listener.lookupTransform('world', anchor_id, rospy.Time(0))
           return trans[0], trans[1], trans[2]
         except:
-          return None, None
+          return None, None, None
 
 
     def jacobian(self, x_s, y_s, z_s):
