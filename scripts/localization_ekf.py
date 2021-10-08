@@ -35,6 +35,7 @@ class LocalizationEKF:
         self.alpha3 = odom_alphas[2]
         self.alpha4 = odom_alphas[3]
         self.kalman_mutex = Lock()
+        self.count_measurements = 0
 
 
     def setInitialPose(self, pose):
@@ -156,7 +157,7 @@ class LocalizationEKF:
 
     def updatePrediction(self, velocities, delta_time):
        
-         
+        self.count_measurements = 0
         #update using the robot dynamics
         theta = self.current_pose[2,0]
         v_t   = velocities[0]
@@ -191,6 +192,13 @@ class LocalizationEKF:
         
     def updateMeasurementGeneric(self, real_measurement, expected_measurement_function, jacobian_function, sensor_covariance):
         
+
+        if(self.count_measurements > 10):
+            return
+
+        self.count_measurements += 1
+
+
         #print('measurement')
         sigma_ = self.sigma
         pose_  = self.current_pose
