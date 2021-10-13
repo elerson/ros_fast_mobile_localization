@@ -207,7 +207,7 @@ class DecawaveReal:
                 return True
         return False
 
-    def verifyInShadow(robot_pos, sensor_pos):
+    def verifyInShadow(self, robot_pos, sensor_pos):
         for rectangle in self.shadow_map[sensor_pos]:
             if self.pointInRect(robot_pos, rectangle):
                 return True
