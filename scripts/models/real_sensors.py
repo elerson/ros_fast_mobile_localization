@@ -178,16 +178,19 @@ class DoubleDecawaveReal:
 
 
 class DecawaveReal:
-    def __init__(self, devices, covariance_matrix, sensor_z=0.45):
+    def __init__(self, devices, covariance_matrix, shadow_locations={}, sensor_z=0.45):
         self.callback = []
 
         (dev1_name, dev_1_distance) = devices
 
         self.anchors_list = set([])
 
+        self.localization = None
         self.sensor_z = sensor_z
         self.l1 = dev_1_distance
        
+        self.shadow_map = []
+        self.shadow_locations = shadow_locations
         self.covariance_matrix = covariance_matrix
         self.tf_listener = tf.TransformListener()
         self.initializeQueues()
@@ -195,10 +198,37 @@ class DecawaveReal:
         rospy.Subscriber(dev1_name, AnchorArray, self.decawaveSensor1)
 
 
+    def pointInRect(self, point, rect):
+        x1, y1, w, h = rect
+        x2, y2 = x1+w, y1+h
+        x, y = point
+        if (x1 < x and x < x2):
+            if (y1 < y and y < y2):
+                return True
+        return False
 
-    def addCallback(self, callback):
+    def verifyInShadow(robot_pos, sensor_pos):
+        for rectangle in self.shadow_map[sensor_pos]:
+            if self.pointInRect(robot_pos, rectangle):
+                return True
+
+        return False
+
+
+    def initializeShadowMap(self, x_s, y_s):
+        shadow_rectangles = []
+        for key in self.shadow_locations:
+            x, y = self.shadow_locations[key][1]
+            if ( self.getDistance(x_s-x, y_s-y, 0) < 0.1):
+                shadow_rectangles.append(self.shadow_locations[key][0])
+
+
+        self.shadow_map[(x_s, y_s)] = shadow_rectangles
+
+    def addLocationAlgorithm(self, localization):
+        self.localization = localization
         self.callback = []
-        self.callback.append(callback)
+        self.callback.append(localization.receiveSensorData)
 
     def initializeQueues(self):
         self.sensor_1 = {}        
@@ -244,6 +274,9 @@ class DecawaveReal:
 
     def decawaveSensor1(self, data):
 
+        if self.localization == None:
+            return
+
         for anchor in data.anchors:
             id_ = anchor.header.frame_id
 
@@ -263,6 +296,17 @@ class DecawaveReal:
                 distance_1, time_1 = self.sensor_1[anchor_id].popleft()
                 
                 x_s, y_s, z_s = self.nodePosition(anchor_id)
+
+                ## 
+                ## Do not add to ekf sensor in shadow positions
+                ##
+                if((x_s, y_s) not in self.shadow_map):
+                    self.initializeShadowMap(x_s, y_s)
+                else:
+                    rx, ry, _ = self.localization.getPose()
+                    if self.verifyInShadow((rx, ry), (x_s, y_s)):
+                        continue
+
                 if(x_s == None):
                     continue
                 

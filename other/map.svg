@@ -129,8 +129,8 @@
      showguides="true"
      inkscape:guide-bbox="true"
      inkscape:zoom="0.45254834"
-     inkscape:cx="1074.6164"
-     inkscape:cy="1685.4523"
+     inkscape:cx="684.60282"
+     inkscape:cy="2030.1669"
      inkscape:window-x="72"
      inkscape:window-y="27"
      inkscape:window-maximized="1"
@@ -695,4 +695,39 @@
        d="m 2300,244.6932 h 50 50 50 50 50 50 50.7813 49.2187 50 50 50 50 50 50 50 50 50 50 50 50 50 50 50 50 50 50 50.4388 v 0"
        style="fill:url(#radialGradient2645);stroke:#0100e1;stroke-width:1.7;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-mid:url(#DiamondL);stroke-miterlimit:4;stroke-dasharray:none;marker-start:url(#DiamondL);fill-opacity:1" />
   </g>
-</svg>
+  <rect
+     style="opacity:0.66199999;fill:#d8261e;fill-opacity:1;stroke:#000300;stroke-width:1.86600006;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:55.11000061;stroke-opacity:1"
+     id="rect999"
+     width="79.549515"
+     height="100.5417"
+     x="757.93011"
+     y="277.83887" />
+  <flowRoot
+     xml:space="preserve"
+     id="flowRoot1001"
+     style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
+     transform="translate(0,-24)"><flowRegion
+       id="flowRegion1003"><rect
+         id="rect1005"
+         width="53.033028"
+         height="58.557205"
+         x="784.44659"
+         y="319.82333" /></flowRegion><flowPara
+       id="flowPara1007">4</flowPara></flowRoot>  <rect
+     style="opacity:0.66199999;fill:#d8261e;fill-opacity:1;stroke:#000300;stroke-width:4.80921125;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:55.11000061;stroke-opacity:1"
+     id="rect999-3"
+     width="216.31908"
+     height="245.59154"
+     x="515.61652"
+     y="-0.89833152" />
+  <flowRoot
+     xml:space="preserve"
+     id="flowRoot1026"
+     style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"><flowRegion
+       id="flowRegion1028"><rect
+         id="rect1030"
+         width="95.017471"
+         height="64.081551"
+         x="598.83105"
+         y="145.25636" /></flowRegion><flowPara
+       id="flowPara1032">6, 5</flowPara></flowRoot></svg>

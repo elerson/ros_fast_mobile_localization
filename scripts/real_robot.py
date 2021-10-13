@@ -36,7 +36,15 @@ from models.real_sensors import DecawaveReal, DecawaveRSF
 
 import signal
 import sys
+
+import yaml
    
+shadow_locations_str = '''
+1: [[18.90, 54.12, 2.02, 2.55], [20.58, 49.20]]
+2: [[12.83, 57.43, 5.53, 6.25], [25.79, 50.62]]
+3: [[12.83, 57.43, 5.53, 6.25], [34.28, 53.35]]
+'''
+
 
 class Robot:
     def __init__(self, tag_sub):
@@ -255,6 +263,8 @@ def getInitialPose(data):
 if __name__ == "__main__":
     # signal.signal(signal.SIGINT, signal_handler)
     # signal.pause()
+
+    shadow_locations = yaml.safe_load(shadow_locations_str)
     
     rospy.init_node('fast_mobile_localization_real', anonymous=True)
     odom_pub = rospy.Publisher('uwb_odom', Odometry, queue_size=10)
@@ -277,7 +287,7 @@ if __name__ == "__main__":
     initial_pose = None   
     wheel_baseline = 0.06
     
-    DecawaveReal = DecawaveReal(devices, covariance_matrix)
+    DecawaveReal = DecawaveReal(devices, covariance_matrix, shadow_locations)
     #DecawaveReal = DecawaveRSF(devices, covariance_matrix[0, 0])
     
     
@@ -290,7 +300,7 @@ if __name__ == "__main__":
             localization = LocalizationEKF(initial_pose, odom_alphas)
             #localization = LocalizationRSF(initial_pose, wheel_baseline, (0.0015, 0.0015, 0.001))
 
-            DecawaveReal.addCallback(localization.receiveSensorData)
+            DecawaveReal.addLocationAlgorithm(localization)
             robot.addCallback(localization.receiveOdom)
 
             print('initial_pose', initial_pose)
