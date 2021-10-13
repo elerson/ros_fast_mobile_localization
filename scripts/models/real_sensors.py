@@ -189,7 +189,7 @@ class DecawaveReal:
         self.sensor_z = sensor_z
         self.l1 = dev_1_distance
        
-        self.shadow_map = []
+        self.shadow_map = {}
         self.shadow_locations = shadow_locations
         self.covariance_matrix = covariance_matrix
         self.tf_listener = tf.TransformListener()
