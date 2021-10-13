@@ -297,6 +297,8 @@ class DecawaveReal:
                 
                 x_s, y_s, z_s = self.nodePosition(anchor_id)
 
+                if(x_s == None):
+                    continue
                 ## 
                 ## Do not add to ekf sensor in shadow positions
                 ##
@@ -305,10 +307,10 @@ class DecawaveReal:
                 else:
                     rx, ry, _ = self.localization.getPose()
                     if self.verifyInShadow((rx, ry), (x_s, y_s)):
+                        print(f'exclude node {(x_s, y_s)}')
                         continue
 
-                if(x_s == None):
-                    continue
+
                 
                 real_measurement = np.matrix([[distance_1]])
 
